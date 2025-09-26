@@ -156,6 +156,25 @@
         font-size: 16px;
         display: none;
         z-index: 10;
+        text-align: center;
+      }
+
+      #newGameBtn {
+        background: #6aaa64;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 12px;
+        cursor: pointer;
+        display: none;
+        touch-action: manipulation;
+      }
+
+      #newGameBtn:active {
+        transform: scale(0.95);
       }
 
       .firework {
@@ -197,7 +216,10 @@
     <main>
       <div id="game" class="grid"></div>
       <section id="keyboard"></section>
-      <div id="popup"></div>
+      <div id="popup">
+        <div id="popupMessage"></div>
+        <button id="newGameBtn">New Game</button>
+      </div>
     </main>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -318,10 +340,17 @@
           }
         }
 
-        function showPopup(message) {
-          popup.textContent = message;
+        function showPopup(message, showNewGame = false) {
+          const popupMessage = document.getElementById('popupMessage');
+          const newGameBtn = document.getElementById('newGameBtn');
+          popupMessage.textContent = message;
           popup.style.display = "block";
-          setTimeout(() => (popup.style.display = "none"), 2000);
+          if (showNewGame) {
+            newGameBtn.style.display = "block";
+          } else {
+            newGameBtn.style.display = "none";
+            setTimeout(() => (popup.style.display = "none"), 2000);
+          }
         }
 
         function createFirework(x, y) {
@@ -410,18 +439,48 @@
             if (currentGuess === currentWord) {
               gameFinished = true;
               shootFireworks();
-              showPopup(`🎉 You won! The word was ${currentWord}`);
+              showPopup(`🎉 You won! The word was ${currentWord}`, true);
             } else if (currentRow === ROWS - 1) {
               gameFinished = true;
-              showPopup(`😔 The word was ${currentWord}`);
+              showPopup(`😔 The word was ${currentWord}`, true);
             }
             currentRow++;
             currentGuess = "";
           }, 1100);
         }
 
+        function startNewGame() {
+          // Reset game state
+          currentGuess = "";
+          currentRow = 0;
+          gameFinished = false;
+
+          // Get new random word
+          const randomIndex = Math.floor(Math.random() * WORD_LIST.length);
+          currentWord = WORD_LIST[randomIndex];
+
+          // Clear grid
+          const tiles = document.querySelectorAll(".tile");
+          tiles.forEach(tile => {
+            tile.textContent = "";
+            tile.classList.remove('correct', 'present', 'absent', 'flip', 'celebration');
+          });
+
+          // Reset keyboard
+          const keys = document.querySelectorAll(".key");
+          keys.forEach(key => {
+            key.classList.remove('correct', 'present', 'absent');
+          });
+
+          // Hide popup
+          popup.style.display = "none";
+        }
+
         drawGrid();
         drawKeyboard();
+
+        // Add new game button event
+        document.getElementById('newGameBtn').onclick = startNewGame;
 
         // Physical keyboard support
         document.addEventListener('keydown', (e) => {
