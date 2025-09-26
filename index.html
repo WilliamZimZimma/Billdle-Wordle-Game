@@ -32,17 +32,24 @@
         padding: 0.5rem;
         max-width: 500px;
         margin: 0 auto;
-        justify-content: space-between;
       }
 
       .grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 0.3rem;
-        margin: 1rem auto;
+        margin: 2rem auto 1rem;
         width: 100%;
         max-width: 350px;
         flex-shrink: 0;
+      }
+
+      .game-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-top: 1rem;
       }
 
       .tile {
@@ -345,7 +352,9 @@
     </header>
 
     <main>
-      <div id="game" class="grid"></div>
+      <div class="game-container">
+        <div id="game" class="grid"></div>
+      </div>
       <section id="keyboard"></section>
       <div id="popup"></div>
     </main>
