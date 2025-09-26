@@ -31,23 +31,23 @@
         flex-direction: column;
         max-width: 400px;
         margin: 0 auto;
-        padding: 8px;
+        padding: 24px 8px 8px;
       }
 
       .grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-        margin: 4px auto 4px;
+        gap: 6px;
+        margin: 16px auto 16px;
         width: 100%;
-        max-width: 320px;
+        max-width: 340px;
       }
 
       .tile {
         width: 100%;
         aspect-ratio: 1;
         border: 2px solid #d3d6da;
-        font-size: 1.8rem;
+        font-size: 2.2rem;
         text-transform: uppercase;
         display: flex;
         align-items: center;
@@ -89,15 +89,15 @@
       #keyboard {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
         width: 100%;
-        margin-top: 8px;
+        margin-top: 20px;
         padding-bottom: env(safe-area-inset-bottom, 8px);
       }
 
       .keyboard-row {
         display: flex;
-        gap: 4px;
+        gap: 6px;
         justify-content: center;
       }
 
@@ -109,7 +109,7 @@
         font-weight: bold;
         cursor: pointer;
         user-select: none;
-        font-size: 14px;
+        font-size: 16px;
         transition: all 0.2s;
         border: none;
         min-width: 28px;
