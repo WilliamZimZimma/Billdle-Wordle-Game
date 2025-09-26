@@ -3,51 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Billdle</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Billdle - Daily Word Game</title>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         font-family: sans-serif;
         background: #fff;
-        max-width: 500px;
-        margin: auto;
-        padding: 1rem;
-        text-align: center;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         -webkit-tap-highlight-color: transparent;
+      }
+
+      main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        max-width: 500px;
+        margin: 0 auto;
       }
 
       .grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        gap: 0.5rem;
-        margin: 1rem 0;
-        justify-items: center;
+        gap: 0.3rem;
+        margin: 0.75rem auto;
+        width: 100%;
+        max-width: 320px;
+        aspect-ratio: 5/6;
       }
 
       .tile {
         width: 100%;
-        max-width: 60px;
-        height: 60px;
+        aspect-ratio: 1;
         border: 2px solid #d3d6da;
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 8vw, 2rem);
         text-transform: uppercase;
-        line-height: 60px;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        position: relative;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+      }
+
+      .tile.flip {
+        animation: flipTile 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes flipTile {
+        0% {
+          transform: rotateX(0deg);
+        }
+        50% {
+          transform: rotateX(90deg);
+        }
+        100% {
+          transform: rotateX(0deg);
+        }
+      }
+
+      .tile.correct {
+        background-color: #6aaa64;
+        border-color: #6aaa64;
+        color: white;
+      }
+
+      .tile.present {
+        background-color: #c9b458;
+        border-color: #c9b458;
+        color: white;
+      }
+
+      .tile.absent {
+        background-color: #787c7e;
+        border-color: #787c7e;
+        color: white;
       }
 
       #keyboard {
-        display: grid;
-        grid-template-columns: repeat(10, 1fr);
-        gap: 0.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        width: 100%;
+        margin-top: auto;
+        padding-bottom: 0.25rem;
+      }
+
+      .keyboard-row {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
       }
 
       .key {
-        padding: 0.75rem;
-        background: #ccc;
+        flex: 1;
+        padding: 0;
+        background: #d3d6da;
         border-radius: 4px;
         font-weight: bold;
         cursor: pointer;
         user-select: none;
-        font-size: 1rem;
+        font-size: clamp(0.7rem, 3vw, 1rem);
+        transition: all 0.2s;
+        border: none;
+        min-width: clamp(20px, 6vw, 35px);
+        height: clamp(32px, 8.5vw, 45px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .key-wide {
+        flex: 1.5;
+        font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+      }
+
+      .key.correct {
+        background: #6aaa64 !important;
+        color: white;
+      }
+
+      .key.present {
+        background: #c9b458 !important;
+        color: white;
+      }
+
+      .key.absent {
+        background: #787c7e !important;
+        color: white;
+      }
+
+      .key:active {
+        transform: scale(0.95);
       }
 
       #popup {
@@ -63,14 +164,255 @@
         display: none;
         z-index: 10;
       }
+
+      .firework {
+        position: fixed;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      .firework-particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        animation: explode 1s ease-out forwards;
+      }
+
+      @keyframes explode {
+        0% {
+          transform: scale(0) translate(0, 0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) translate(var(--dx), var(--dy));
+          opacity: 0;
+        }
+      }
+
+      .celebration {
+        animation: bounce 0.6s ease-in-out;
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #d3d6da;
+        background: #fff;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+      }
+
+      .header-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .header-btn {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        color: #333;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        animation: fadeIn 0.3s;
+      }
+
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 400px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+
+      .stat {
+        text-align: center;
+        padding: 0.5rem;
+      }
+
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #666;
+      }
+
+      .streak-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #f0f0f0;
+        border-radius: 8px;
+      }
+
+      .streak-icon {
+        font-size: 1.5rem;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .new-game-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: #6aaa64;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .new-game-btn:hover {
+        background: #5a9a54;
+      }
     </style>
   </head>
   <body>
+    <header>
+      <button class="header-btn" id="helpBtn">❓</button>
+      <h1>BILLDLE</h1>
+      <div class="header-buttons">
+        <button class="header-btn" id="statsBtn">📊</button>
+        <button class="header-btn" id="settingsBtn">⚙️</button>
+      </div>
+    </header>
+
     <main>
       <div id="game" class="grid"></div>
       <section id="keyboard"></section>
       <div id="popup"></div>
     </main>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Statistics</div>
+          <button class="close-btn" onclick="closeModal('statsModal')">×</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-number" id="gamesPlayed">0</div>
+            <div class="stat-label">Played</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="winPercent">0</div>
+            <div class="stat-label">Win %</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="currentStreak">0</div>
+            <div class="stat-label">Current Streak</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="maxStreak">0</div>
+            <div class="stat-label">Max Streak</div>
+          </div>
+        </div>
+        <div class="streak-bar">
+          <span class="streak-icon">🔥</span>
+          <div>
+            <strong>Daily Streak:</strong> Play every day to build your streak!
+          </div>
+        </div>
+        <button class="new-game-btn" onclick="newGame()">New Game</button>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">How to Play</div>
+          <button class="close-btn" onclick="closeModal('helpModal')">×</button>
+        </div>
+        <div>
+          <p style="margin-bottom: 1rem;">Guess the BILLDLE in 6 tries!</p>
+          <p style="margin-bottom: 0.5rem;">• Each guess must be a valid 5-letter word</p>
+          <p style="margin-bottom: 0.5rem;">• The color of the tiles will change to show how close your guess was</p>
+          <div style="margin-top: 1rem;">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="width: 40px; height: 40px; background: #6aaa64; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">B</div>
+              <div style="flex: 1;">The letter <strong>B</strong> is in the word and in the correct spot</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="width: 40px; height: 40px; background: #c9b458; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">I</div>
+              <div style="flex: 1;">The letter <strong>I</strong> is in the word but in the wrong spot</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <div style="width: 40px; height: 40px; background: #787c7e; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">L</div>
+              <div style="flex: 1;">The letter <strong>L</strong> is not in the word</div>
+            </div>
+          </div>
+          <p style="margin-top: 1rem; text-align: center;"><strong>A new word every day!</strong></p>
+        </div>
+      </div>
+    </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const gameContainer = document.getElementById("game");
@@ -80,6 +422,14 @@
         const ROWS = 6;
         
         // Word list with 1000 five-letter words
+        // Get today's date as a seed for the daily word
+        function getTodaysSeed() {
+          const today = new Date();
+          const startDate = new Date('2024-01-01'); // Start date for the game
+          const daysDiff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+          return daysDiff;
+        }
+
         const WORD_LIST = [
           "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN",
           "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIGN", "ALIKE", "ALIVE",
@@ -367,14 +717,42 @@
           "YEARN", "YEAST", "YIELD", "YOUNG", "YOUTH", "ZEBRA", "ZESTY", "ZONAL"
         ];
         
-        let currentWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+        // Use daily word or random for practice mode
+        const dailySeed = getTodaysSeed();
+        let isDaily = localStorage.getItem('billdle-daily-played') !== dailySeed.toString();
+        let currentWord = isDaily ?
+          WORD_LIST[dailySeed % WORD_LIST.length] :
+          WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+
         let currentGuess = "";
         let currentRow = 0;
         let gameFinished = false;
+        let keyboardStatus = {}; // Track the status of each key
 
-        // Load stats from localStorage
-        let gamesWon = parseInt(localStorage.getItem('billdle-wins') || '0');
-        let gamesLost = parseInt(localStorage.getItem('billdle-losses') || '0');
+        // Enhanced stats tracking
+        let stats = {
+          gamesPlayed: parseInt(localStorage.getItem('billdle-played') || '0'),
+          gamesWon: parseInt(localStorage.getItem('billdle-wins') || '0'),
+          currentStreak: parseInt(localStorage.getItem('billdle-streak') || '0'),
+          maxStreak: parseInt(localStorage.getItem('billdle-max-streak') || '0'),
+          lastPlayed: localStorage.getItem('billdle-last-played') || null
+        };
+
+        // Check if streak should be reset (not played yesterday)
+        function checkStreak() {
+          if (stats.lastPlayed) {
+            const lastDate = new Date(stats.lastPlayed);
+            const today = new Date();
+            const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 1) {
+              stats.currentStreak = 0;
+              localStorage.setItem('billdle-streak', '0');
+            }
+          }
+        }
+
+        checkStreak();
+        updateStatsDisplay();
 
         function drawGrid() {
           for (let i = 0; i < ROWS * WORD_LENGTH; i++) {
@@ -385,29 +763,65 @@
         }
 
         function drawKeyboard() {
-          const keys = "QWERTYUIOPASDFGHJKLZXCVBNM".split("");
-          keys.forEach((key) => {
-            const keyEl = document.createElement("div");
+          // First row: QWERTYUIOP
+          const row1Container = document.createElement("div");
+          row1Container.className = "keyboard-row";
+
+          const row1 = "QWERTYUIOP".split("");
+          row1.forEach((key) => {
+            const keyEl = document.createElement("button");
             keyEl.className = "key";
             keyEl.textContent = key;
+            keyEl.dataset.key = key;
             keyEl.onclick = () => handleKey(key);
-            keyboardContainer.appendChild(keyEl);
+            row1Container.appendChild(keyEl);
+          });
+          keyboardContainer.appendChild(row1Container);
+
+          // Second row: ASDFGHJKL
+          const row2Container = document.createElement("div");
+          row2Container.className = "keyboard-row";
+
+          const row2 = "ASDFGHJKL".split("");
+          row2.forEach((key) => {
+            const keyEl = document.createElement("button");
+            keyEl.className = "key";
+            keyEl.textContent = key;
+            keyEl.dataset.key = key;
+            keyEl.onclick = () => handleKey(key);
+            row2Container.appendChild(keyEl);
+          });
+          keyboardContainer.appendChild(row2Container);
+
+          // Third row: Enter + ZXCVBNM + Backspace
+          const row3Container = document.createElement("div");
+          row3Container.className = "keyboard-row";
+
+          const enter = document.createElement("button");
+          enter.className = "key key-wide";
+          enter.textContent = "ENTER";
+          enter.onclick = submitGuess;
+          row3Container.appendChild(enter);
+
+          const row3 = "ZXCVBNM".split("");
+          row3.forEach((key) => {
+            const keyEl = document.createElement("button");
+            keyEl.className = "key";
+            keyEl.textContent = key;
+            keyEl.dataset.key = key;
+            keyEl.onclick = () => handleKey(key);
+            row3Container.appendChild(keyEl);
           });
 
-          const backspace = document.createElement("div");
-          backspace.className = "key";
-          backspace.textContent = "←";
+          const backspace = document.createElement("button");
+          backspace.className = "key key-wide";
+          backspace.textContent = "⌫";
           backspace.onclick = () => {
             currentGuess = currentGuess.slice(0, -1);
             updateGrid();
           };
-          keyboardContainer.appendChild(backspace);
-
-          const enter = document.createElement("div");
-          enter.className = "key";
-          enter.textContent = "↵";
-          enter.onclick = submitGuess;
-          keyboardContainer.appendChild(enter);
+          row3Container.appendChild(backspace);
+          keyboardContainer.appendChild(row3Container);
         }
 
         function handleKey(key) {
@@ -431,90 +845,244 @@
           setTimeout(() => (popup.style.display = "none"), 2000);
         }
 
+        function createFirework(x, y) {
+          const firework = document.createElement('div');
+          firework.className = 'firework';
+          firework.style.left = x + 'px';
+          firework.style.top = y + 'px';
+
+          const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#ff8c94', '#a8e6cf', '#dda0dd'];
+
+          for (let i = 0; i < 12; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'firework-particle';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const angle = (i * 30) * Math.PI / 180;
+            const distance = 50 + Math.random() * 50;
+            const dx = Math.cos(angle) * distance;
+            const dy = Math.sin(angle) * distance;
+
+            particle.style.setProperty('--dx', dx + 'px');
+            particle.style.setProperty('--dy', dy + 'px');
+
+            firework.appendChild(particle);
+          }
+
+          document.body.appendChild(firework);
+
+          setTimeout(() => {
+            document.body.removeChild(firework);
+          }, 1000);
+        }
+
+        function shootFireworks() {
+          const gameRect = gameContainer.getBoundingClientRect();
+
+          // Multiple fireworks at different times
+          for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+              const x = Math.random() * window.innerWidth;
+              const y = Math.random() * (window.innerHeight * 0.6) + 50;
+              createFirework(x, y);
+            }, i * 200);
+          }
+
+          // Add celebration animation to game grid
+          gameContainer.classList.add('celebration');
+          setTimeout(() => {
+            gameContainer.classList.remove('celebration');
+          }, 600);
+        }
+
+        function updateKeyboardColor(letter, status) {
+          const keyEl = document.querySelector(`[data-key="${letter}"]`);
+          if (!keyEl) return;
+
+          // Only update if the new status is "better" than the current one
+          // Priority: correct > present > absent
+          if (keyEl.classList.contains('correct')) return;
+          if (keyEl.classList.contains('present') && status === 'absent') return;
+
+          keyEl.classList.remove('correct', 'present', 'absent');
+          keyEl.classList.add(status);
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+          document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+          document.getElementById(modalId).style.display = "none";
+        }
+
+        window.closeModal = closeModal; // Make it global for onclick handlers
+
+        // Stats display update
+        function updateStatsDisplay() {
+          document.getElementById('gamesPlayed').textContent = stats.gamesPlayed;
+          const winPercent = stats.gamesPlayed > 0 ?
+            Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0;
+          document.getElementById('winPercent').textContent = winPercent;
+          document.getElementById('currentStreak').textContent = stats.currentStreak;
+          document.getElementById('maxStreak').textContent = stats.maxStreak;
+        }
+
+        // New game function
+        function newGame() {
+          // Reset game state
+          currentRow = 0;
+          currentGuess = "";
+          gameFinished = false;
+          keyboardStatus = {};
+          isDaily = false;
+
+          // Get new random word
+          currentWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+
+          // Clear the grid
+          const tiles = document.querySelectorAll(".tile");
+          tiles.forEach(tile => {
+            tile.textContent = "";
+            tile.classList.remove('correct', 'present', 'absent', 'flip');
+          });
+
+          // Reset keyboard colors
+          document.querySelectorAll('.key').forEach(key => {
+            key.classList.remove('correct', 'present', 'absent');
+          });
+
+          closeModal('statsModal');
+        }
+
+        window.newGame = newGame; // Make it global
+
         function submitGuess() {
+          if (gameFinished) return;
           if (currentGuess.length !== WORD_LENGTH) return;
 
           const tiles = document.querySelectorAll(".tile");
           const start = currentRow * WORD_LENGTH;
 
+          // Animate tiles with delay - Wordle-style timing
           for (let i = 0; i < WORD_LENGTH; i++) {
-            const tile = tiles[start + i];
-            const letter = currentGuess[i];
-            if (letter === currentWord[i]) {
-              tile.style.backgroundColor = "#6aaa64";
-              tile.style.color = "#fff";
-            } else if (currentWord.includes(letter)) {
-              tile.style.backgroundColor = "#c9b458";
-              tile.style.color = "#fff";
-            } else {
-              tile.style.backgroundColor = "#787c7e";
-              tile.style.color = "#fff";
+            setTimeout(() => {
+              const tile = tiles[start + i];
+              const letter = currentGuess[i];
+
+              tile.classList.add('flip');
+
+              setTimeout(() => {
+                tile.classList.remove('flip');
+
+                if (letter === currentWord[i]) {
+                  tile.classList.add('correct');
+                  updateKeyboardColor(letter, 'correct');
+                } else if (currentWord.includes(letter)) {
+                  tile.classList.add('present');
+                  updateKeyboardColor(letter, 'present');
+                } else {
+                  tile.classList.add('absent');
+                  updateKeyboardColor(letter, 'absent');
+                }
+              }, 300);  // Color reveals at halfway point of 0.6s animation
+            }, i * 320);  // 320ms delay between each tile for smooth, relaxing wave
+          }
+
+          // Check win/loss after animations complete
+          setTimeout(() => {
+            if (currentGuess === currentWord) {
+              gameFinished = true;
+              stats.gamesPlayed++;
+              stats.gamesWon++;
+              stats.currentStreak++;
+              if (stats.currentStreak > stats.maxStreak) {
+                stats.maxStreak = stats.currentStreak;
+              }
+              stats.lastPlayed = new Date().toISOString();
+
+              // Save stats
+              localStorage.setItem('billdle-played', stats.gamesPlayed.toString());
+              localStorage.setItem('billdle-wins', stats.gamesWon.toString());
+              localStorage.setItem('billdle-streak', stats.currentStreak.toString());
+              localStorage.setItem('billdle-max-streak', stats.maxStreak.toString());
+              localStorage.setItem('billdle-last-played', stats.lastPlayed);
+
+              if (isDaily) {
+                localStorage.setItem('billdle-daily-played', dailySeed.toString());
+              }
+
+              shootFireworks();
+              updateStatsDisplay();
+              setTimeout(() => openModal('statsModal'), 2000);
+            } else if (currentRow === ROWS - 1) {
+              gameFinished = true;
+              stats.gamesPlayed++;
+              stats.currentStreak = 0;
+              stats.lastPlayed = new Date().toISOString();
+
+              // Save stats
+              localStorage.setItem('billdle-played', stats.gamesPlayed.toString());
+              localStorage.setItem('billdle-streak', '0');
+              localStorage.setItem('billdle-last-played', stats.lastPlayed);
+
+              if (isDaily) {
+                localStorage.setItem('billdle-daily-played', dailySeed.toString());
+              }
+
+              showPopup(`The word was ${currentWord}`);
+              updateStatsDisplay();
+              setTimeout(() => openModal('statsModal'), 2000);
             }
-          }
 
-          if (currentGuess === currentWord) {
-            gameFinished = true;
-            gamesWon++;
-            localStorage.setItem('billdle-wins', gamesWon.toString());
-            showPopup(`You won! Games won: ${gamesWon}. Thanks for playing Billdle!`);
-          } else if (currentRow === ROWS - 1) {
-            gameFinished = true;
-            gamesLost++;
-            localStorage.setItem('billdle-losses', gamesLost.toString());
-            showPopup(`You lost! The word was ${currentWord}. Games lost: ${gamesLost}. Thanks for playing Billdle!`);
-          }
-
-          currentRow++;
-          currentGuess = "";
-        }
-
-        function handleKey(key) {
-          if (gameFinished) return;
-          if (currentGuess.length < WORD_LENGTH) {
-            currentGuess += key;
-            updateGrid();
-          }
-        }
-
-        function submitGuess() {
-          if (gameFinished) return;
-          if (currentGuess.length !== WORD_LENGTH) return;
-
-          const tiles = document.querySelectorAll(".tile");
-          const start = currentRow * WORD_LENGTH;
-
-          for (let i = 0; i < WORD_LENGTH; i++) {
-            const tile = tiles[start + i];
-            const letter = currentGuess[i];
-            if (letter === currentWord[i]) {
-              tile.style.backgroundColor = "#6aaa64";
-              tile.style.color = "#fff";
-            } else if (currentWord.includes(letter)) {
-              tile.style.backgroundColor = "#c9b458";
-              tile.style.color = "#fff";
-            } else {
-              tile.style.backgroundColor = "#787c7e";
-              tile.style.color = "#fff";
-            }
-          }
-
-          if (currentGuess === currentWord) {
-            gameFinished = true;
-            gamesWon++;
-            localStorage.setItem('billdle-wins', gamesWon.toString());
-            showPopup(`You won! Games won: ${gamesWon}. Thanks for playing Billdle!`);
-          } else if (currentRow === ROWS - 1) {
-            gameFinished = true;
-            gamesLost++;
-            localStorage.setItem('billdle-losses', gamesLost.toString());
-            showPopup(`You lost! The word was ${currentWord}. Games lost: ${gamesLost}. Thanks for playing Billdle!`);
-          }
-
-          currentRow++;
-          currentGuess = "";
+            currentRow++;
+            currentGuess = "";
+          }, 1780); // Total animation time: ~1280ms (last tile) + 500ms (animation) buffer
         }
         drawGrid();
         drawKeyboard();
+
+        // Add event listeners for header buttons
+        document.getElementById('statsBtn').addEventListener('click', () => {
+          updateStatsDisplay();
+          openModal('statsModal');
+        });
+
+        document.getElementById('helpBtn').addEventListener('click', () => {
+          openModal('helpModal');
+        });
+
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+          showPopup('Settings coming soon!');
+        });
+
+        // Add keyboard support
+        document.addEventListener('keydown', (e) => {
+          if (gameFinished) return;
+
+          if (e.key === 'Enter') {
+            submitGuess();
+          } else if (e.key === 'Backspace') {
+            currentGuess = currentGuess.slice(0, -1);
+            updateGrid();
+          } else if (e.key.match(/^[a-zA-Z]$/)) {
+            handleKey(e.key.toUpperCase());
+          }
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+          if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+          }
+        });
+
+        // Show help modal on first visit
+        if (!localStorage.getItem('billdle-visited')) {
+          localStorage.setItem('billdle-visited', 'true');
+          setTimeout(() => openModal('helpModal'), 500);
+        }
       });
     </script>
   </body>
