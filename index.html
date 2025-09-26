@@ -26,10 +26,10 @@
 
       main {
         width: 100%;
-        height: calc(100vh - 80px);
+        height: 100vh;
         display: flex;
         flex-direction: column;
-        padding: 0.5rem;
+        padding: 0.25rem 0.5rem;
         max-width: 500px;
         margin: 0 auto;
       }
@@ -38,7 +38,7 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 0.3rem;
-        margin: 2rem auto 1rem;
+        margin: 0 auto 1rem;
         width: 100%;
         max-width: 350px;
         flex-shrink: 0;
@@ -49,7 +49,6 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        padding-top: 1rem;
       }
 
       .tile {
@@ -207,24 +206,16 @@
         50% { transform: scale(1.1); }
       }
 
-      header {
+      .header-buttons-inline {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #d3d6da;
-        background: #fff;
+        padding: 0.25rem 0;
+        margin-bottom: 0.25rem;
       }
 
-      h1 {
-        font-size: 1.5rem;
-        font-weight: 900;
-        letter-spacing: 0.05em;
-      }
-
-      .header-buttons {
-        display: flex;
-        gap: 0.5rem;
+      .spacer {
+        flex: 1;
       }
 
       .header-btn {
@@ -342,16 +333,13 @@
     </style>
   </head>
   <body>
-    <header>
-      <button class="header-btn" id="helpBtn">❓</button>
-      <h1>BILLDLE</h1>
-      <div class="header-buttons">
+    <main>
+      <div class="header-buttons-inline">
+        <button class="header-btn" id="helpBtn">❓</button>
+        <div class="spacer"></div>
         <button class="header-btn" id="statsBtn">📊</button>
         <button class="header-btn" id="settingsBtn">⚙️</button>
       </div>
-    </header>
-
-    <main>
       <div class="game-container">
         <div id="game" class="grid"></div>
       </div>
