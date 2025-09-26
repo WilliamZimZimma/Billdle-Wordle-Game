@@ -177,6 +177,19 @@
         transform: scale(0.95);
       }
 
+      #streakDisplay {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: #6aaa64;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 16px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 5;
+      }
+
       .firework {
         position: fixed;
         pointer-events: none;
@@ -214,6 +227,7 @@
   </head>
   <body>
     <main>
+      <div id="streakDisplay">🔥 0</div>
       <div id="game" class="grid"></div>
       <section id="keyboard"></section>
       <div id="popup">
@@ -256,6 +270,8 @@
         let currentGuess = "";
         let currentRow = 0;
         let gameFinished = false;
+        let currentStreak = parseInt(localStorage.getItem('billdle-streak') || '0');
+        let bestStreak = parseInt(localStorage.getItem('billdle-best-streak') || '0');
 
         function drawGrid() {
           for (let i = 0; i < ROWS * WORD_LENGTH; i++) {
@@ -340,10 +356,24 @@
           }
         }
 
+        function updateStreakDisplay() {
+          const streakDisplay = document.getElementById('streakDisplay');
+          streakDisplay.textContent = `🔥 ${currentStreak}`;
+        }
+
         function showPopup(message, showNewGame = false) {
           const popupMessage = document.getElementById('popupMessage');
           const newGameBtn = document.getElementById('newGameBtn');
-          popupMessage.textContent = message;
+
+          // Add streak info to win message
+          if (showNewGame && message.includes('won')) {
+            const streakText = currentStreak > 1 ? ` • Streak: ${currentStreak}` : '';
+            const bestText = currentStreak > bestStreak ? ' • New Best!' : '';
+            popupMessage.innerHTML = message + streakText + bestText;
+          } else {
+            popupMessage.textContent = message;
+          }
+
           popup.style.display = "block";
           if (showNewGame) {
             newGameBtn.style.display = "block";
@@ -438,10 +468,20 @@
           setTimeout(() => {
             if (currentGuess === currentWord) {
               gameFinished = true;
+              currentStreak++;
+              if (currentStreak > bestStreak) {
+                bestStreak = currentStreak;
+                localStorage.setItem('billdle-best-streak', bestStreak.toString());
+              }
+              localStorage.setItem('billdle-streak', currentStreak.toString());
+              updateStreakDisplay();
               shootFireworks();
               showPopup(`🎉 You won! The word was ${currentWord}`, true);
             } else if (currentRow === ROWS - 1) {
               gameFinished = true;
+              currentStreak = 0;
+              localStorage.setItem('billdle-streak', '0');
+              updateStreakDisplay();
               showPopup(`😔 The word was ${currentWord}`, true);
             }
             currentRow++;
@@ -478,6 +518,7 @@
 
         drawGrid();
         drawKeyboard();
+        updateStreakDisplay();
 
         // Add new game button event
         document.getElementById('newGameBtn').onclick = startNewGame;
