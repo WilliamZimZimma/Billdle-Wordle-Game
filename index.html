@@ -38,7 +38,7 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 0.3rem;
-        margin: 0 auto 1rem;
+        margin: 0 auto 0.25rem;
         width: 100%;
         max-width: 350px;
         flex-shrink: 0;
@@ -48,7 +48,8 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
+        justify-content: center;
+        padding-top: 1rem;
       }
 
       .tile {
@@ -206,26 +207,6 @@
         50% { transform: scale(1.1); }
       }
 
-      .header-buttons-inline {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.25rem 0;
-        margin-bottom: 0.25rem;
-      }
-
-      .spacer {
-        flex: 1;
-      }
-
-      .header-btn {
-        background: none;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
-        padding: 0.25rem;
-        color: #333;
-      }
 
       .modal {
         display: none;
@@ -334,12 +315,6 @@
   </head>
   <body>
     <main>
-      <div class="header-buttons-inline">
-        <button class="header-btn" id="helpBtn">❓</button>
-        <div class="spacer"></div>
-        <button class="header-btn" id="statsBtn">📊</button>
-        <button class="header-btn" id="settingsBtn">⚙️</button>
-      </div>
       <div class="game-container">
         <div id="game" class="grid"></div>
       </div>
@@ -1041,19 +1016,6 @@
         drawGrid();
         drawKeyboard();
 
-        // Add event listeners for header buttons
-        document.getElementById('statsBtn').addEventListener('click', () => {
-          updateStatsDisplay();
-          openModal('statsModal');
-        });
-
-        document.getElementById('helpBtn').addEventListener('click', () => {
-          openModal('helpModal');
-        });
-
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-          showPopup('Settings coming soon!');
-        });
 
         // Add keyboard support
         document.addEventListener('keydown', (e) => {
