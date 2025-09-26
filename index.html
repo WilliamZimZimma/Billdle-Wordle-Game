@@ -29,7 +29,7 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
-        padding: 0.1rem 0.5rem;
+        padding: 0;
         max-width: 500px;
         margin: 0 auto;
       }
@@ -38,9 +38,9 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 0.3rem;
-        margin: 0 auto 0.25rem;
+        margin: 0 auto 0.5rem;
         width: 100%;
-        max-width: 350px;
+        max-width: min(350px, 90vw);
         flex-shrink: 0;
       }
 
@@ -48,8 +48,8 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        padding-top: 0.25rem;
+        justify-content: flex-start;
+        padding: 0.5rem;
       }
 
       .tile {
@@ -310,6 +310,28 @@
 
       .new-game-btn:hover {
         background: #5a9a54;
+      }
+
+      /* Responsive styles for consistent mobile/desktop layout */
+      @media (min-width: 768px) {
+        main {
+          max-width: 400px;
+        }
+
+        .grid {
+          max-width: 320px;
+          gap: 0.25rem;
+        }
+
+        .tile {
+          font-size: 1.8rem;
+        }
+
+        .key {
+          font-size: 0.9rem;
+          height: 40px;
+          min-width: 30px;
+        }
       }
     </style>
   </head>
