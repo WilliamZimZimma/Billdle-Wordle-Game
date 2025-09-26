@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Billdle Mobile</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #fff;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      main {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        margin: 8px auto 8px;
+        width: 100%;
+        max-width: 320px;
+      }
+
+      .tile {
+        width: 100%;
+        aspect-ratio: 1;
+        border: 2px solid #d3d6da;
+        font-size: 1.8rem;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        position: relative;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+      }
+
+      .tile.flip {
+        animation: flipTile 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes flipTile {
+        0% { transform: rotateX(0deg); }
+        50% { transform: rotateX(90deg); }
+        100% { transform: rotateX(0deg); }
+      }
+
+      .tile.correct {
+        background-color: #6aaa64;
+        border-color: #6aaa64;
+        color: white;
+      }
+
+      .tile.present {
+        background-color: #c9b458;
+        border-color: #c9b458;
+        color: white;
+      }
+
+      .tile.absent {
+        background-color: #787c7e;
+        border-color: #787c7e;
+        color: white;
+      }
+
+      #keyboard {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+        margin-top: auto;
+        padding-bottom: env(safe-area-inset-bottom, 8px);
+      }
+
+      .keyboard-row {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+      }
+
+      .key {
+        flex: 1;
+        padding: 0;
+        background: #d3d6da;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+        transition: all 0.2s;
+        border: none;
+        min-width: 28px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .key-wide {
+        flex: 1.5;
+        font-size: 12px;
+      }
+
+      .key.correct {
+        background: #6aaa64 !important;
+        color: white;
+      }
+
+      .key.present {
+        background: #c9b458 !important;
+        color: white;
+      }
+
+      .key.absent {
+        background: #787c7e !important;
+        color: white;
+      }
+
+      .key:active {
+        transform: scale(0.95);
+      }
+
+      #popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #222;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        display: none;
+        z-index: 10;
+      }
+
+      .firework {
+        position: fixed;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      .firework-particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        animation: explode 1s ease-out forwards;
+      }
+
+      @keyframes explode {
+        0% {
+          transform: scale(0) translate(0, 0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) translate(var(--dx), var(--dy));
+          opacity: 0;
+        }
+      }
+
+      .celebration {
+        animation: bounce 0.6s ease-in-out;
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="game" class="grid"></div>
+      <section id="keyboard"></section>
+      <div id="popup"></div>
+    </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const gameContainer = document.getElementById("game");
+        const keyboardContainer = document.getElementById("keyboard");
+        const popup = document.getElementById("popup");
+        const WORD_LENGTH = 5;
+        const ROWS = 6;
+
+        // Get today's date as a seed for the daily word
+        function getTodaysSeed() {
+          const today = new Date();
+          const startDate = new Date('2024-01-01');
+          const daysDiff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+          return daysDiff;
+        }
+
+        // Simplified word list for mobile
+        const WORD_LIST = [
+          "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN",
+          "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIGN", "ALIKE", "ALIVE",
+          "ALLOW", "ALONE", "ALONG", "ALTER", "AMBER", "AMEND", "AMONG", "ANGER", "ANGLE", "ANGRY",
+          "APART", "APPLE", "APPLY", "ARENA", "ARGUE", "ARISE", "ARRAY", "ARROW", "ASIDE", "ASSET",
+          "ATLAS", "AUDIO", "AUDIT", "AVOID", "AWAKE", "AWARD", "AWARE", "BADLY", "BAKER", "BASES",
+          "BASIC", "BATCH", "BEACH", "BEGAN", "BEGIN", "BEING", "BELOW", "BENCH", "BILLY", "BIRTH",
+          "BLACK", "BLAME", "BLANK", "BLAST", "BLIND", "BLOCK", "BLOOD", "BLOOM", "BOARD", "BOOST",
+          "BOOTH", "BOUND", "BRAIN", "BRAND", "BRASS", "BRAVE", "BREAD", "BREAK", "BREED", "BRIEF",
+          "BRING", "BROAD", "BROKE", "BROWN", "BUILD", "BUILT", "BUYER", "CABLE", "CALIF", "CARRY",
+          "CATCH", "CAUSE", "CHAIN", "CHAIR", "CHAOS", "CHARM", "CHART", "CHASE", "CHEAP", "CHECK"
+        ];
+
+        const dailySeed = getTodaysSeed();
+        let currentWord = WORD_LIST[dailySeed % WORD_LIST.length];
+        let currentGuess = "";
+        let currentRow = 0;
+        let gameFinished = false;
+
+        function drawGrid() {
+          for (let i = 0; i < ROWS * WORD_LENGTH; i++) {
+            const tile = document.createElement("div");
+            tile.className = "tile";
+            gameContainer.appendChild(tile);
+          }
+        }
+
+        function drawKeyboard() {
+          // First row: QWERTYUIOP
+          const row1Container = document.createElement("div");
+          row1Container.className = "keyboard-row";
+          const row1 = "QWERTYUIOP".split("");
+          row1.forEach((key) => {
+            const keyEl = document.createElement("button");
+            keyEl.className = "key";
+            keyEl.textContent = key;
+            keyEl.dataset.key = key;
+            keyEl.onclick = () => handleKey(key);
+            row1Container.appendChild(keyEl);
+          });
+          keyboardContainer.appendChild(row1Container);
+
+          // Second row: ASDFGHJKL
+          const row2Container = document.createElement("div");
+          row2Container.className = "keyboard-row";
+          const row2 = "ASDFGHJKL".split("");
+          row2.forEach((key) => {
+            const keyEl = document.createElement("button");
+            keyEl.className = "key";
+            keyEl.textContent = key;
+            keyEl.dataset.key = key;
+            keyEl.onclick = () => handleKey(key);
+            row2Container.appendChild(keyEl);
+          });
+          keyboardContainer.appendChild(row2Container);
+
+          // Third row: Enter + ZXCVBNM + Backspace
+          const row3Container = document.createElement("div");
+          row3Container.className = "keyboard-row";
+
+          const enter = document.createElement("button");
+          enter.className = "key key-wide";
+          enter.textContent = "ENTER";
+          enter.onclick = submitGuess;
+          row3Container.appendChild(enter);
+
+          const row3 = "ZXCVBNM".split("");
+          row3.forEach((key) => {
+            const keyEl = document.createElement("button");
+            keyEl.className = "key";
+            keyEl.textContent = key;
+            keyEl.dataset.key = key;
+            keyEl.onclick = () => handleKey(key);
+            row3Container.appendChild(keyEl);
+          });
+
+          const backspace = document.createElement("button");
+          backspace.className = "key key-wide";
+          backspace.textContent = "⌫";
+          backspace.onclick = () => {
+            currentGuess = currentGuess.slice(0, -1);
+            updateGrid();
+          };
+          row3Container.appendChild(backspace);
+          keyboardContainer.appendChild(row3Container);
+        }
+
+        function handleKey(key) {
+          if (currentGuess.length < WORD_LENGTH) {
+            currentGuess += key;
+            updateGrid();
+          }
+        }
+
+        function updateGrid() {
+          const tiles = document.querySelectorAll(".tile");
+          const start = currentRow * WORD_LENGTH;
+          for (let i = 0; i < WORD_LENGTH; i++) {
+            tiles[start + i].textContent = currentGuess[i] || "";
+          }
+        }
+
+        function showPopup(message) {
+          popup.textContent = message;
+          popup.style.display = "block";
+          setTimeout(() => (popup.style.display = "none"), 2000);
+        }
+
+        function createFirework(x, y) {
+          const firework = document.createElement('div');
+          firework.className = 'firework';
+          firework.style.left = x + 'px';
+          firework.style.top = y + 'px';
+
+          const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#ff8c94', '#a8e6cf'];
+
+          for (let i = 0; i < 12; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'firework-particle';
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const angle = (i * 30) * Math.PI / 180;
+            const distance = 50 + Math.random() * 50;
+            const dx = Math.cos(angle) * distance;
+            const dy = Math.sin(angle) * distance;
+
+            particle.style.setProperty('--dx', dx + 'px');
+            particle.style.setProperty('--dy', dy + 'px');
+
+            firework.appendChild(particle);
+          }
+
+          document.body.appendChild(firework);
+          setTimeout(() => document.body.removeChild(firework), 1000);
+        }
+
+        function shootFireworks() {
+          for (let i = 0; i < 6; i++) {
+            setTimeout(() => {
+              const x = Math.random() * window.innerWidth;
+              const y = Math.random() * (window.innerHeight * 0.6) + 50;
+              createFirework(x, y);
+            }, i * 200);
+          }
+          gameContainer.classList.add('celebration');
+          setTimeout(() => gameContainer.classList.remove('celebration'), 600);
+        }
+
+        function updateKeyboardColor(letter, status) {
+          const keyEl = document.querySelector(`[data-key="${letter}"]`);
+          if (!keyEl) return;
+          if (keyEl.classList.contains('correct')) return;
+          if (keyEl.classList.contains('present') && status === 'absent') return;
+          keyEl.classList.remove('correct', 'present', 'absent');
+          keyEl.classList.add(status);
+        }
+
+        function submitGuess() {
+          if (gameFinished) return;
+          if (currentGuess.length !== WORD_LENGTH) return;
+
+          const tiles = document.querySelectorAll(".tile");
+          const start = currentRow * WORD_LENGTH;
+
+          // Animate tiles with mobile-optimized timing
+          for (let i = 0; i < WORD_LENGTH; i++) {
+            setTimeout(() => {
+              const tile = tiles[start + i];
+              const letter = currentGuess[i];
+
+              tile.classList.add('flip');
+
+              setTimeout(() => {
+                tile.classList.remove('flip');
+
+                if (letter === currentWord[i]) {
+                  tile.classList.add('correct');
+                  updateKeyboardColor(letter, 'correct');
+                } else if (currentWord.includes(letter)) {
+                  tile.classList.add('present');
+                  updateKeyboardColor(letter, 'present');
+                } else {
+                  tile.classList.add('absent');
+                  updateKeyboardColor(letter, 'absent');
+                }
+              }, 300);
+            }, i * 180);
+          }
+
+          // Check win/loss after animations complete
+          setTimeout(() => {
+            if (currentGuess === currentWord) {
+              gameFinished = true;
+              shootFireworks();
+              showPopup(`🎉 You won! The word was ${currentWord}`);
+            } else if (currentRow === ROWS - 1) {
+              gameFinished = true;
+              showPopup(`😔 The word was ${currentWord}`);
+            }
+            currentRow++;
+            currentGuess = "";
+          }, 1100);
+        }
+
+        drawGrid();
+        drawKeyboard();
+
+        // Physical keyboard support
+        document.addEventListener('keydown', (e) => {
+          if (gameFinished) return;
+          if (e.key === 'Enter') {
+            submitGuess();
+          } else if (e.key === 'Backspace') {
+            currentGuess = currentGuess.slice(0, -1);
+            updateGrid();
+          } else if (e.key.match(/^[a-zA-Z]$/)) {
+            handleKey(e.key.toUpperCase());
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
